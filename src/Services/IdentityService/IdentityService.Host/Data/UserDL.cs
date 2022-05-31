@@ -15,7 +15,9 @@ namespace IdentityService.Host.Data
         //Clase que administra los archivos guardados
         private DataSource DataSource;
         private List<User> UsersList;
+        private List<Persona> PersonasList;
         private string UsersData;
+        private string PersonasData;
 
         public UserDL(string file)
         {
@@ -68,21 +70,32 @@ namespace IdentityService.Host.Data
             return id;
         }
 
-        public void Delete(int id)
+        public bool SavePersona(Persona persona)
         {
-            Read();
-            //Busco la persona con el 
-            User user = new User();
-            if (UsersList.Count > 0)
+            this.PersonasData = this.DataSource.Read();
+            this.PersonasList = this.PersonasData?.Length > 0 ? JsonConvert.DeserializeObject<List<Persona>>(this.PersonasData) : new List<Persona>();
+            this.PersonasList.Add(persona);
+            this.PersonasData = JsonConvert.SerializeObject(this.PersonasList);
+            this.DataSource.Save(this.PersonasData);
+            return true;
+        }
+
+        public bool Delete(int id)
+        {
+            this.PersonasData = this.DataSource.Read();
+            this.PersonasList = this.PersonasData?.Length > 0 ? JsonConvert.DeserializeObject<List<Persona>>(this.PersonasData) : new List<Persona>();
+            Persona persona = new Persona();
+            if (PersonasList.Count > 0)
             {
-                user = this.UsersList.First(x => x.userId == id);
+                persona = this.PersonasList.FirstOrDefault(x => x.AnimoId == id);
             }
-            //Si la encontro la borro
-            if (user.userId > 0)
+            if (persona.AnimoId > 0)
             {
-                this.UsersList.Remove(user);
+                this.PersonasList.Remove(persona);
             }
-            Save();
+            this.PersonasData = JsonConvert.SerializeObject(this.PersonasList);
+            this.DataSource.Save(this.PersonasData);
+            return true;
         }
 
         private bool Exist(int id)
@@ -110,6 +123,13 @@ namespace IdentityService.Host.Data
                 user = this.UsersList.FirstOrDefault(x => x.userId == id);
             }
             return user;
+        }
+
+        public List<Persona> GetPersonas()
+        {
+            this.PersonasData = this.DataSource.Read();
+            this.PersonasList = this.PersonasData?.Length > 0 ? JsonConvert.DeserializeObject<List<Persona>>(this.PersonasData) : new List<Persona>();
+            return this.PersonasList;
         }
     }
 }
